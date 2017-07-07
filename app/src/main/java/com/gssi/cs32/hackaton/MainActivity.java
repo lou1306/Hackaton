@@ -2,9 +2,15 @@ package com.gssi.cs32.hackaton;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,13 +35,27 @@ import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.util.ListenableList;
 import com.gssi.cs32.hackaton.server.IServer;
 import com.gssi.cs32.hackaton.server.Server;
+import com.gssi.cs32.hackaton.util.MyLocationListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private MapView mMapView;
+
+    public static float swRoll;
+    public static float swPitch;
+    public static float swAzimuth;
+
+
+    public static SensorManager mSensorManager;
+    public static Sensor accelerometer;
+    public static Sensor magnetometer;
+
+    public static float[] mAccelerometer = null;
+    public static float[] mGeomagnetic = null;
+
 
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -75,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
         mMapView = (MapView) findViewById(R.id.mapView);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -96,11 +121,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             long LOCATION_REFRESH_TIME = 10000;
-            float LOCATION_REFRESH_DISTANCE = 150f;
+            float LOCATION_REFRESH_DISTANCE = 10f;
 
-            Location loc = new Location("");
-            loc.setLatitude(42.35);
-            loc.setLongitude(13.5);
+
 
             String[] reqPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission
                     .ACCESS_COARSE_LOCATION};
@@ -112,18 +135,15 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, 2);
             }
 
+            LocationManager locManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+            LocationListener locListener = new MyLocationListener();
+            locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locListener);
 
-            Log.i("LOC", loc.toString());
-
-            ArcGISMap map = new ArcGISMap(Basemap.Type.OPEN_STREET_MAP, loc.getLatitude(), loc.getLongitude(), 15);
+            ArcGISMap map = new ArcGISMap(Basemap.Type.OPEN_STREET_MAP, 42.35, 13.4, 13);
             mMapView.setMap(map);
-
-            AndroidLocationDataSource lds = new AndroidLocationDataSource(this);
 
             Criteria crit = new Criteria();
             crit.setAccuracy(Criteria.ACCURACY_FINE);
-
-            lds.requestLocationUpdates(crit, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
 
             GraphicsOverlay go = new GraphicsOverlay(GraphicsOverlay.RenderingMode.STATIC);
             ListenableList<GraphicsOverlay> overlays = mMapView.getGraphicsOverlays();
@@ -134,10 +154,6 @@ public class MainActivity extends AppCompatActivity {
             }
             mMapView.invalidate();
             mMapView.forceLayout();
-//            SimpleFillSymbol symbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, Color.RED, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.RED, 2));
-//            UniqueValueRenderer renderer = new UniqueValueRenderer();
-//            renderer.setDefaultSymbol(symbol);
-//            go.setRenderer(renderer);
             Log.i("MSG", "done");
 
 
@@ -190,4 +206,35 @@ public class MainActivity extends AppCompatActivity {
         mMapView.resume();
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // onSensorChanged gets called for each sensor so we have to remember the values
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            mAccelerometer = event.values;
+        }
+
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            mGeomagnetic = event.values;
+        }
+
+        if (mAccelerometer != null && mGeomagnetic != null) {
+            float R[] = new float[9];
+            float I[] = new float[9];
+            boolean success = SensorManager.getRotationMatrix(R, I, mAccelerometer, mGeomagnetic);
+
+            if (success) {
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(R, orientation);
+                // at this point, orientation contains the azimuth(direction), pitch and roll values.
+                double azimuth = 180 * orientation[0] / Math.PI;
+                double pitch = 180 * orientation[1] / Math.PI;
+                double roll = 180 * orientation[2] / Math.PI;
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }

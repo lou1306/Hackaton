@@ -7,7 +7,32 @@ package com.gssi.cs32.hackaton.util;
 
 
 import android.graphics.Color;
-import android.util.Log;
+
+import com.esri.arcgisruntime.data.Feature;
+import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Multipoint;
+import com.esri.arcgisruntime.geometry.MultipointBuilder;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointBuilder;
+import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.Polygon;
+import com.esri.arcgisruntime.geometry.PolygonBuilder;
+import com.esri.arcgisruntime.geometry.Polyline;
+import com.esri.arcgisruntime.geometry.PolylineBuilder;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.mapping.GeoElement;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.Symbol;
+
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,41 +42,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-
-import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.data.FeatureCollection;
-import com.esri.arcgisruntime.data.FeatureTable;
-import com.esri.arcgisruntime.geometry.Geometry;
-import com.esri.arcgisruntime.geometry.GeometryEngine;
-import com.esri.arcgisruntime.geometry.GeometryType;
-import com.esri.arcgisruntime.geometry.ImmutablePartCollection;
-import com.esri.arcgisruntime.geometry.MultipartBuilder;
-import com.esri.arcgisruntime.geometry.Multipoint;
-import com.esri.arcgisruntime.geometry.MultipointBuilder;
-import com.esri.arcgisruntime.geometry.Part;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.PointBuilder;
-import com.esri.arcgisruntime.geometry.PointCollection;
-import com.esri.arcgisruntime.geometry.Polygon;
-import com.esri.arcgisruntime.geometry.PolygonBuilder;
-import com.esri.arcgisruntime.geometry.Polyline;
-import com.esri.arcgisruntime.geometry.PolylineBuilder;
-import com.esri.arcgisruntime.geometry.SpatialReference;
-import com.esri.arcgisruntime.data.Feature;
-import com.esri.arcgisruntime.data.ArcGISFeature;
-import com.esri.arcgisruntime.internal.jni.CoreRequest;
-import com.esri.arcgisruntime.mapping.GeoElement;
-import com.esri.arcgisruntime.mapping.view.Graphic;
-import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.symbology.Symbol;
 
 /**
  * A parser that reads data in <a href="http://geojson.org">GeoJSON</a> format, and returns
@@ -204,7 +194,12 @@ public final class GeoJsonParser {
                 List<GeoElement> features = new LinkedList<GeoElement>();
 
                 for (Geometry g : geometries) {
-                    features.add(new Graphic(g, symbol));
+                    Symbol s = symbol;
+                    if (g.getGeometryType() == com.esri.arcgisruntime.geometry.GeometryType.POLYGON)
+                    {
+                        s = polygonSymbol;
+                    }
+                    features.add(new Graphic(g, s));
                 }
                 return features;
             }
