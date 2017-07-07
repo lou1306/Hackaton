@@ -17,7 +17,6 @@ android {
 
     defaultConfig {
         applicationId "com.gssi.cs32.hackaton"
-        multiDexEnabled true
         minSdkVersion 23
         targetSdkVersion 25
         versionCode 1
@@ -56,9 +55,5 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
     compile 'org.geotools:geotools:17.1'
     testCompile 'junit:junit:4.12'
-    compile files('libs/gt-api-17.1.jar')
-    compile 'com.vividsolutions:jts:1.13'
-    compile 'org.mod4j.org.apache.commons:lang:2.1.0'
     compile 'com.esri.arcgisruntime:arcgis-android:100.1.0'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
 }
