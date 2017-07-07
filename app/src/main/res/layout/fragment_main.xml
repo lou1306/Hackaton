@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:showIn="@layout/activity_main"
-    tools:context="cs32.gssi.hackaton.MainActivityFragment">
+    tools:context="com.gssi.cs32.hackaton.MainActivityFragment">
 
     <TextView
         android:id="@+id/sample_text"

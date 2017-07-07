@@ -2,56 +2,41 @@ package com.gssi.cs32.hackaton;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Criteria;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.widget.TextView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
-import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.data.FeatureCollection;
-import com.esri.arcgisruntime.internal.jni.CoreRequest;
-import com.esri.arcgisruntime.layers.Layer;
 import com.esri.arcgisruntime.location.AndroidLocationDataSource;
-import com.esri.arcgisruntime.location.LocationDataSource;
-import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.GeoElement;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.symbology.UniqueValueRenderer;
 import com.esri.arcgisruntime.util.ListenableList;
 import com.gssi.cs32.hackaton.server.IServer;
 import com.gssi.cs32.hackaton.server.Server;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
-import cs32.gssi.hackaton.R;
 
 public class MainActivity extends AppCompatActivity {
     private MapView mMapView;
-    private int requestCode = 2;
+
 
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
@@ -124,10 +109,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (!(permissionCheck1 && permissionCheck2)) {
                 // If permissions are not already granted, request permission from the user.
-                ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, requestCode);
+                ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, 2);
             }
-
-
 
 
             Log.i("LOC", loc.toString());
