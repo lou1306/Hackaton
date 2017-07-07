@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="cs32.gssi.hackaton" >
+    package="com.gssi.cs32.hackaton" >
 
     <application
         android:allowBackup="true"

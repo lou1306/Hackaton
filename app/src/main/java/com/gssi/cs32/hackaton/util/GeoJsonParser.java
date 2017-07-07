@@ -52,7 +52,6 @@ import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.Symbol;
-import com.vividsolutions.jts.geom.MultiPolygon;
 
 /**
  * A parser that reads data in <a href="http://geojson.org">GeoJSON</a> format, and returns
