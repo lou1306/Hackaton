@@ -111,6 +111,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         mMapView = (MapView) findViewById(R.id.mapView);
+        ArcGISMap map = new ArcGISMap(Basemap.Type.OPEN_STREET_MAP, 42.35, 13.4, 14);
+        mMapView.setMap(map);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
