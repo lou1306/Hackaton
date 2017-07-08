@@ -123,10 +123,10 @@ public final class GeoJsonParser {
         SimpleLineSymbol outlineSymbol =
                 new SimpleLineSymbol(
                         SimpleLineSymbol.Style.SOLID,
-                        Color.argb(255, 0, 0, 128), 1.0f);
+                        Color.argb(64, 0, 0, 128), 1.0f);
         this.polygonSymbol =
                 new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,
-                        Color.argb(255, 0, 0, 128),
+                        Color.argb(64, 0, 0, 128),
                         outlineSymbol);
 
     }
