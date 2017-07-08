@@ -263,9 +263,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private float manhattanDist(float[] p1, float[] p2)
     {
-        if (p1.length != p2.length) return 0;
         float out = 0;
-        for (int i = 0; i < p1.length; i++)
+        for (int i = 0; i < Math.min(p1.length, p2.length); i++)
         {
             out += Math.abs(p1[i] - p2[i]);
         }
@@ -291,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             boolean success = SensorManager.getRotationMatrix(R, I, mAccelerometer, mGeomagnetic);
 
             if (success) {
-                if (oldR.length != 0 && manhattanDist(oldR, R) < EPS) return;
+                if (oldR.length > 0 && manhattanDist(oldR, R) < EPS) return;
                 oldR = R;
                 oldI = I;
                 float orientation[] = new float[3];
@@ -308,8 +307,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     GeoElement elem = getElement(loc, azimuth, server.getQgis(), 100.0d, 0.0d);
                     if (elem != null) {
-                        int codGis = (int) elem.getAttributes().get((Object) "cod_gis");
-
+                        int codGis = (int) elem.getAttributes().getOrDefault((Object) "cod_gis", -1);
                         Snackbar.make(mMapView,
                                 Integer.toString(codGis), Snackbar.LENGTH_LONG).show();
 
