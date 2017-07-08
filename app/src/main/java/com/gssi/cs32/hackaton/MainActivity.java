@@ -2,7 +2,6 @@ package com.gssi.cs32.hackaton;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -25,7 +24,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.esri.arcgisruntime.location.AndroidLocationDataSource;
+import com.esri.arcgisruntime.ArcGISRuntimeException;
+import com.esri.arcgisruntime.geometry.AngularUnit;
+import com.esri.arcgisruntime.geometry.AngularUnitId;
+import com.esri.arcgisruntime.geometry.GeodeticCurveType;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.LinearUnit;
+import com.esri.arcgisruntime.geometry.LinearUnitId;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.Polyline;
+import com.esri.arcgisruntime.geometry.PolylineBuilder;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.GeoElement;
@@ -39,6 +49,8 @@ import com.gssi.cs32.hackaton.util.MyLocationListener;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -52,10 +64,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public static SensorManager mSensorManager;
     public static Sensor accelerometer;
     public static Sensor magnetometer;
+    private static LocationManager locManager;
+    private static Server server;
 
     public static float[] mAccelerometer = null;
     public static float[] mGeomagnetic = null;
-
 
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -81,12 +94,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(grantResults[0] != PackageManager.PERMISSION_GRANTED)
-        {
+        if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
 
-        }
-        else
-        {
+        } else {
 
         }
     }
@@ -96,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
@@ -117,12 +127,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             InputStream mopsStream = getAssets().open("mops.geojson");
             InputStream qgisStream = getAssets().open("QGIS.geojson");
             AsyncTask<InputStream, Integer, IServer> task = new LoadServerTask().execute(mopsStream, qgisStream);
-            Server server = (Server) task.get();
+            server = (Server) task.get();
 
 
             long LOCATION_REFRESH_TIME = 10000;
             float LOCATION_REFRESH_DISTANCE = 10f;
-
 
 
             String[] reqPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission
@@ -135,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, 2);
             }
 
-            LocationManager locManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+            locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             LocationListener locListener = new MyLocationListener();
             locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locListener);
 
@@ -149,14 +158,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ListenableList<GraphicsOverlay> overlays = mMapView.getGraphicsOverlays();
             overlays.add(go);
 
-            for (GeoElement geoElement : server.getMops()){
+            for (GeoElement geoElement : server.getMops()) {
                 go.getGraphics().add((Graphic) geoElement);
             }
             mMapView.invalidate();
             mMapView.forceLayout();
             Log.i("MSG", "done");
-
-
 
 
         } catch (InterruptedException e) {
@@ -169,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
     }
-
 
 
     @Override
@@ -195,15 +201,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         mMapView.pause();
+        mSensorManager.unregisterListener(this, accelerometer);
+        mSensorManager.unregisterListener(this, magnetometer);
         super.onPause();
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         mMapView.resume();
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -226,12 +236,69 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
                 // at this point, orientation contains the azimuth(direction), pitch and roll values.
-                double azimuth = 180 * orientation[0] / Math.PI;
+                double azimuth = Math.toDegrees(orientation[0]);
                 double pitch = 180 * orientation[1] / Math.PI;
                 double roll = 180 * orientation[2] / Math.PI;
+                if (locManager != null) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        Log.i("ERR", "No permission");
+                        return;
+                    }
+                    Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    GeoElement elem = getElement(loc, azimuth, server.getQgis(), 100.0d, 0.0d);
+                    if (elem != null) {
+                        int codGis = (int) elem.getAttributes().get((Object) "cod_gis");
+                        Log.i("elem", Integer.toString(codGis));
+                    }
+                }
             }
         }
     }
+
+    private GeoElement getElement(Location loc, double azimuth, List<GeoElement> elements, double distance, double prevDistance)
+    {
+        ArrayList<Point> pointsArray = new ArrayList<Point>(2);
+        Point p1 = new Point(loc.getLongitude(), loc.getLatitude(), SpatialReference.create(4326));
+        pointsArray.add(p1);
+
+        try {
+            Point p2 = GeometryEngine.moveGeodetic(p1, distance, new LinearUnit(LinearUnitId.METERS), azimuth, new AngularUnit(AngularUnitId.DEGREES), GeodeticCurveType.GEODESIC);
+            pointsArray.add(p2);
+        } catch (ArcGISRuntimeException e) {
+            Log.e("EXC", e.getAdditionalMessage());
+            Log.e("EXC", e.getMessage());
+        }
+
+
+        // Create a segment with the 2 points created above
+        PointCollection points = new PointCollection(pointsArray);
+        PolylineBuilder pb = new PolylineBuilder(points);
+
+        Polyline line = pb.toGeometry();
+        // Filter out geometries that intersect the segment
+        List<GeoElement> filtered = new ArrayList<GeoElement>();
+        for (GeoElement g : elements)
+        {
+            if (!GeometryEngine.disjoint(line, g.getGeometry())) {
+                filtered.add(g);
+            }
+        }
+
+        switch (filtered.size()){
+            case 0:
+                if(prevDistance == 0 || distance < 5) {
+                    return null;
+                }
+                else {
+                    return getElement(loc, azimuth, elements, (distance + prevDistance) / 2, distance);
+                }
+            case 1:
+                return filtered.get(0);
+            default:
+                return getElement(loc, azimuth, filtered, distance/2, distance);
+        }
+    }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {

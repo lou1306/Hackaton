@@ -320,10 +320,10 @@ public final class GeoJsonParser {
      * @throws Exception
      */
     private Point parsePointCoordinates(JsonNode node) {
-        PointBuilder builder = new PointBuilder(node.get(0).asDouble(), node.get(1).asDouble());
-        if (node.size() == 3) {
-            builder.setZ(node.get(2).asDouble());
-        }
+        PointBuilder builder = new PointBuilder(node.get(0).asDouble(), node.get(1).asDouble(), inSR);
+//        if (node.size() == 3) {
+//            builder.setZ(node.get(2).asDouble());
+//        }
         return builder.toGeometry();
     }
 
@@ -342,7 +342,7 @@ public final class GeoJsonParser {
             Point point = parsePointCoordinates(jsonPoint);
             points.add(point);
         }
-        MultipointBuilder builder = new MultipointBuilder(points);
+        MultipointBuilder builder = new MultipointBuilder(points, inSR);
         return builder.toGeometry();
     }
 
@@ -355,8 +355,8 @@ public final class GeoJsonParser {
      */
     private Polyline parseLineStringCoordinates(JsonNode node) {
 
-        PointCollection collection = new PointCollection(new LinkedList<Point>());
-        PolylineBuilder builder = new PolylineBuilder(collection);
+        PointCollection collection = new PointCollection(new LinkedList<Point>(), inSR);
+        PolylineBuilder builder = new PolylineBuilder(collection, inSR);
 
         //boolean first = true;
         ArrayNode pointsArray = (ArrayNode) node;
@@ -385,8 +385,8 @@ public final class GeoJsonParser {
      * @throws Exception
      */
     private Polyline parseMultiLineStringCoordinates(JsonNode node) {
-        PointCollection collection = new PointCollection(new LinkedList<Point>());
-        PolylineBuilder builder = new PolylineBuilder(collection);
+        PointCollection collection = new PointCollection(new LinkedList<Point>(), inSR);
+        PolylineBuilder builder = new PolylineBuilder(collection, inSR);
 
         ArrayNode jsonLines = (ArrayNode) node;
         for (JsonNode jsonLine : jsonLines) {
@@ -404,8 +404,8 @@ public final class GeoJsonParser {
      * @throws IOException
      */
     private Polygon parseSimplePolygonCoordinates(JsonNode node) {
-        PointCollection collection = new PointCollection(new LinkedList<Point>());
-        PolygonBuilder builder = new PolygonBuilder(collection);
+        PointCollection collection = new PointCollection(new LinkedList<Point>(), inSR);
+        PolygonBuilder builder = new PolygonBuilder(collection, inSR);
         ArrayNode points = (ArrayNode) node;
         for (JsonNode point : points) {
             Point p = parsePointCoordinates(point);
@@ -431,8 +431,8 @@ public final class GeoJsonParser {
      * @throws Exception
      */
     private Polygon parsePolygonCoordinates(JsonNode node) {
-        PointCollection collection = new PointCollection(new LinkedList<Point>());
-        PolygonBuilder builder = new PolygonBuilder(collection);
+        PointCollection collection = new PointCollection(new LinkedList<Point>(), inSR);
+        PolygonBuilder builder = new PolygonBuilder(collection, inSR);
         ArrayNode jsonPolygons = (ArrayNode) node;
         for (JsonNode jsonPolygon : jsonPolygons) {
             Polygon simplePolygon = parseSimplePolygonCoordinates(jsonPolygon);
@@ -454,8 +454,8 @@ public final class GeoJsonParser {
      * @throws Exception
      */
     private Polygon parseMultiPolygonCoordinates(JsonNode node) {
-        PointCollection collection = new PointCollection(new LinkedList<Point>());
-        PolygonBuilder builder = new PolygonBuilder(collection);
+        PointCollection collection = new PointCollection(new LinkedList<Point>(), inSR);
+        PolygonBuilder builder = new PolygonBuilder(collection, inSR);
         ArrayNode jsonPolygons = (ArrayNode) node;
         for (JsonNode jsonPolygon : jsonPolygons) {
             Polygon simplePolygon = parsePolygonCoordinates(jsonPolygon);
