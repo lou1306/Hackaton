@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <group android:id="@+id/grp1" android:checkableBehavior="single" >
+        <item
+            android:id="@+id/nav_profile_fragment"
+            android:icon="@drawable/ic_account_circle_black_24dp"
+            android:title="Il mio profilo" />
+
+        <item
+            android:id="@+id/nav_review_fragment"
+            android:icon="@drawable/ic_keyboard_black_24dp"
+            android:title="Recensioni" />
+
+        <item
+            android:id="@+id/nav_chat_fragment"
+            android:icon="@drawable/ic_chat_black_24dp"
+            android:title="Chat" />
+
+        <item
+            android:id="@+id/nav_gruppi_fragment"
+            android:icon="@drawable/ic_people_black_24dp"
+            android:title="Gruppi" />
+    </group>
+
+    <group android:id="@+id/grp2" android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_third_fragment"
+            android:icon="@drawable/ic_terrain_black_24dp"
+            android:title="Satellite" />
+
+        <item
+            android:id="@+id/nav_fragment4"
+            android:icon="@drawable/ic_traffic_black_24dp"
+            android:title="Segnalazioni" />
+
+        <item
+            android:id="@+id/nav_fragment5"
+            android:icon="@drawable/ic_track_changes_black_24dp"
+            android:title="Microzonazione" />
+
+        <item
+            android:id="@+id/nav_fragment6"
+            android:icon="@drawable/ic_assessment_black_24dp"
+            android:title="Statistiche" />
+
+    </group>
+</menu>
+
