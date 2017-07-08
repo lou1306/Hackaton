@@ -145,11 +145,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            LocationListener locListener = new MyLocationListener();
+            LocationListener locListener = new MyLocationListener(mMapView);
             locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locListener);
-
-            ArcGISMap map = new ArcGISMap(Basemap.Type.OPEN_STREET_MAP, 42.35, 13.4, 13);
-            mMapView.setMap(map);
 
             Criteria crit = new Criteria();
             crit.setAccuracy(Criteria.ACCURACY_FINE);
@@ -164,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mMapView.invalidate();
             mMapView.forceLayout();
             Log.i("MSG", "done");
-
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -212,8 +208,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
         mMapView.resume();
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override
