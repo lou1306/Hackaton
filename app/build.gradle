@@ -30,7 +30,7 @@ android {
         jackOptions {
             enabled true
         }
-        
+
     }
     buildTypes {
         release {
@@ -53,7 +53,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:25.3.1'
-    testCompile 'junit:junit:4.12'
     compile 'com.esri.arcgisruntime:arcgis-android:100.1.0'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    testCompile 'junit:junit:4.12'
 }

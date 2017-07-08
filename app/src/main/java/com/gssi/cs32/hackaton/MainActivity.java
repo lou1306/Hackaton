@@ -1,6 +1,8 @@
 package com.gssi.cs32.hackaton;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.hardware.Sensor;
@@ -18,6 +20,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -124,6 +127,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    private void startQuestionActivity(){
+        Intent intent = new Intent(this, QuestionActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,14 +148,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mMapView.forceLayout();
 
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startQuestionActivity();
+            }
+        });
 
         try {
             InputStream mopsStream = getAssets().open("mops.geojson");
@@ -256,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private float manhattanDist(float[] p1, float[] p2)
     {
+        if (p1.length != p2.length) return 0;
         float out = 0;
         for (int i = 0; i < p1.length; i++)
         {
@@ -301,6 +309,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     GeoElement elem = getElement(loc, azimuth, server.getQgis(), 100.0d, 0.0d);
                     if (elem != null) {
                         int codGis = (int) elem.getAttributes().get((Object) "cod_gis");
+
+                        Snackbar.make(mMapView,
+                                Integer.toString(codGis), Snackbar.LENGTH_LONG).show();
+
+
                         Log.i("elem", Integer.toString(codGis));
                     }
                 }
