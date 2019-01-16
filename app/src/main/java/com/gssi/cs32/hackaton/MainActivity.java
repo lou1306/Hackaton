@@ -2,7 +2,6 @@ package com.gssi.cs32.hackaton;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.hardware.Sensor;
@@ -20,7 +19,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -31,7 +29,11 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.ArcGISRuntimeException;
+import com.esri.arcgisruntime.License;
+import com.esri.arcgisruntime.LicenseInfo;
+import com.esri.arcgisruntime.LicenseType;
 import com.esri.arcgisruntime.geometry.AngularUnit;
 import com.esri.arcgisruntime.geometry.AngularUnitId;
 import com.esri.arcgisruntime.geometry.GeodeticCurveType;
@@ -70,7 +72,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] oldR = new float[0];
     private float[] oldI = new float[0];
 
+    private long lastTime = 0;
 
+    private int codGis = -1;
     public static float swRoll;
     public static float swPitch;
     public static float swAzimuth;
@@ -135,8 +139,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        ArcGISRuntimeEnvironment.setLicense("runtimelite,1000,rud6345746341,none,B5H93PJPXJ05J9HSX054");
 
+        setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -145,8 +150,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mMapView = (MapView) findViewById(R.id.mapView);
         ArcGISMap map = new ArcGISMap(Basemap.Type.OPEN_STREET_MAP, 42.35, 13.4, 14);
         mMapView.setMap(map);
-        mMapView.forceLayout();
-
+        mMapView.invalidate();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -205,14 +209,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-
     @Override
 
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -259,23 +255,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mMapView.resume();
         mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        oldR = new float[0];
+        oldI = new float[0];
     }
 
-    private float manhattanDist(float[] p1, float[] p2)
-    {
-        float out = 0;
-        for (int i = 0; i < Math.min(p1.length, p2.length); i++)
-        {
-            out += Math.abs(p1[i] - p2[i]);
-        }
-        return out;
-    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float EPS = 1e-6f;
         // onSensorChanged gets called for each sensor so we have to remember the values
-
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             mAccelerometer = event.values;
         }
@@ -290,9 +277,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             boolean success = SensorManager.getRotationMatrix(R, I, mAccelerometer, mGeomagnetic);
 
             if (success) {
-                if (oldR.length > 0 && manhattanDist(oldR, R) < EPS) return;
-                oldR = R;
-                oldI = I;
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
                 // at this point, orientation contains the azimuth(direction), pitch and roll values.
@@ -307,12 +291,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     GeoElement elem = getElement(loc, azimuth, server.getQgis(), 100.0d, 0.0d);
                     if (elem != null) {
-                        int codGis = (int) elem.getAttributes().getOrDefault((Object) "cod_gis", -1);
-                        Snackbar.make(mMapView,
+
+                        int newCodGis = (int) elem.getAttributes().getOrDefault((Object) "cod_gis", -1);
+                        if (newCodGis!= codGis) {
+                            codGis = newCodGis;
+                            Snackbar.make(mMapView,
                                 Integer.toString(codGis), Snackbar.LENGTH_LONG).show();
-
-
-                        Log.i("elem", Integer.toString(codGis));
+                        }
                     }
                 }
             }
