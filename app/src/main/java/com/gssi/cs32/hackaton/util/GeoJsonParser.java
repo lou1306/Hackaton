@@ -363,12 +363,6 @@ public final class GeoJsonParser {
         for (JsonNode point : pointsArray) {
             Point p = parsePointCoordinates(point);
             builder.addPoint(p);
-//            if (first) {
-//                g.startPath(p);
-//                //first = false;
-//            } else {
-//                g.lineTo(p);
-//            }
         }
 
         return builder.toGeometry();
